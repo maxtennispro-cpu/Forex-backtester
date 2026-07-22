@@ -36,6 +36,27 @@ Run the tests:
 python -m pytest tests/ -q
 ```
 
+## Web app (subscription site)
+
+`webapp/` wraps the backtester in a small subscription site — marketing
+landing page, pricing page with Starter/Pro/Premium tiers, user accounts,
+and a members' dashboard whose gated content is live backtester output
+(run on synthetic candles, so no OANDA key is needed):
+
+```bash
+uvicorn webapp.main:app --reload    # then open http://127.0.0.1:8000
+```
+
+- **Starter (free)** — headline stats (return, win rate, trade count).
+- **Pro** — full metrics (Sharpe, drawdown, profit factor, expectancy),
+  equity/drawdown chart, per-session and per-instrument breakdowns.
+- **Premium** — everything in Pro plus the complete trade log and CSV export.
+
+Checkout is a placeholder (no payment is collected; confirming activates
+the plan). A real Stripe integration slots into `checkout_submit` in
+`webapp/main.py`. Users live in SQLite under `webapp/data/` (gitignored);
+set `APP_SECRET_KEY` in `.env` to keep sessions across restarts.
+
 ## The strategy
 
 `forex_backtester/strategy/mean_reversion.py` — **BollingerFade**:

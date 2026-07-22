@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Systematic FX trading, made transparent</p>
+  <h1>Trade the strategy.<br>Not the hype.</h1>
+  <p class="lede">
+    MindsFX runs a session-aware Bollinger-band mean-reversion strategy across
+    EUR/USD and GBP/USD — with realistic spreads, slippage, and portfolio risk
+    limits — and shows you every number behind it.
+  </p>
+  <div class="cta-row">
+    <a class="btn btn-primary btn-lg" href="/register">Start free</a>
+    <a class="btn btn-ghost btn-lg" href="/pricing">See plans</a>
+  </div>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <h3>Honest backtesting</h3>
+    <p>Entries fill at the next bar's open, stops are checked before targets,
+       and every fill pays spread and slippage. No look-ahead, no free lunches.</p>
+  </div>
+  <div class="feature">
+    <h3>Risk-first engine</h3>
+    <p>1% risk per trade, portfolio-wide position caps, and a daily loss
+       cutoff — the same guardrails a live engine would run.</p>
+  </div>
+  <div class="feature">
+    <h3>Session intelligence</h3>
+    <p>Signals only fire during London and New York hours, and performance is
+       broken down by the session that produced each trade.</p>
+  </div>
+  <div class="feature">
+    <h3>Full transparency</h3>
+    <p>Equity curve, drawdown, Sharpe, profit factor, expectancy, and — on
+       Premium — the complete trade-by-trade log, exportable to CSV.</p>
+  </div>
+</section>
+
+<section class="cta-band">
+  <h2>See the numbers for yourself</h2>
+  <p>Create a free account and watch the strategy work. Upgrade any time. Cancel any time.</p>
+  <a class="btn btn-primary btn-lg" href="/register">Create free account</a>
+</section>
+{% endblock %}

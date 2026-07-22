@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — MindsFX{% endblock %}
+
+{% block content %}
+<section class="dash-header">
+  <div>
+    <h1>Strategy dashboard</h1>
+    <p class="meta">Bollinger fade — EUR/USD + GBP/USD, M5 ·
+       last {{ window_days }} days · updated {{ as_of.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+  </div>
+  <span class="plan-pill">{{ plan.name }} plan</span>
+</section>
+
+<section class="stat-grid">
+  <div class="stat">
+    <span class="label">Total return</span>
+    <span class="value {{ 'pos' if metrics.total_return >= 0 else 'neg' }}">
+      {{ '%+.2f%%' % (metrics.total_return * 100) }}</span>
+  </div>
+  <div class="stat">
+    <span class="label">Win rate</span>
+    <span class="value">{{ '%.1f%%' % (metrics.win_rate * 100) if metrics.trades else '—' }}</span>
+  </div>
+  <div class="stat">
+    <span class="label">Trades</span>
+    <span class="value">{{ metrics.trades }}</span>
+  </div>
+  {% if plan.full_metrics %}
+  <div class="stat">
+    <span class="label">Profit factor</span>
+    <span class="value">{{ '%.2f' % metrics.profit_factor if metrics.trades else '—' }}</span>
+  </div>
+  <div class="stat">
+    <span class="label">Max drawdown</span>
+    <span class="value neg">{{ '%.2f%%' % (metrics.max_drawdown_pct * 100) }}</span>
+  </div>
+  <div class="stat">
+    <span class="label">Sharpe (ann.)</span>
+    <span class="value">{{ '%.2f' % metrics.sharpe_daily }}</span>
+  </div>
+  <div class="stat">
+    <span class="label">Expectancy / trade</span>
+    <span class="value">{{ '{:+,.0f}'.format(metrics.expectancy) if metrics.trades else '—' }}</span>
+  </div>
+  <div class="stat">
+    <span class="label">Avg pips / trade</span>
+    <span class="value">{{ '%+.2f' % metrics.avg_pips if metrics.trades else '—' }}</span>
+  </div>
+  {% endif %}
+</section>
+
+{% if plan.equity_chart %}
+<section class="panel">
+  <h2>Equity curve &amp; drawdown</h2>
+  <img class="chart" src="/dashboard/chart.png" alt="Equity curve and drawdown chart">
+</section>
+{% else %}
+<section class="panel locked">
+  <h2>Equity curve &amp; full metrics</h2>
+  <p>Sharpe, drawdown, profit factor, and the equity/drawdown chart are
+     available on <strong>Pro</strong>.</p>
+  <a class="btn btn-primary" href="/checkout/pro">Upgrade to Pro</a>
+</section>
+{% endif %}
+
+{% if plan.full_metrics and sessions %}
+<section class="panel">
+  <h2>Per-session performance</h2>
+  <table>
+    <thead><tr><th>Session</th><th>Trades</th><th>Win rate</th><th>Profit factor</th><th>Net P&amp;L</th><th>Avg pips</th></tr></thead>
+    <tbody>
+      {% for row in sessions %}
+      <tr>
+        <td>{{ row['index'] }}</td>
+        <td>{{ row.trades }}</td>
+        <td>{{ '%.1f%%' % (row.win_rate * 100) }}</td>
+        <td>{{ '%.2f' % row.profit_factor }}</td>
+        <td class="{{ 'pos' if row.net_pnl >= 0 else 'neg' }}">{{ '{:+,.0f}'.format(row.net_pnl) }}</td>
+        <td>{{ '%+.2f' % row.avg_pips }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if plan.full_metrics and instruments %}
+<section class="panel">
+  <h2>Per-instrument performance</h2>
+  <table>
+    <thead><tr><th>Instrument</th><th>Trades</th><th>Win rate</th><th>Profit factor</th><th>Net P&amp;L</th><th>Avg pips</th></tr></thead>
+    <tbody>
+      {% for row in instruments %}
+      <tr>
+        <td>{{ row['index'].replace('_', '/') }}</td>
+        <td>{{ row.trades }}</td>
+        <td>{{ '%.1f%%' % (row.win_rate * 100) }}</td>
+        <td>{{ '%.2f' % row.profit_factor }}</td>
+        <td class="{{ 'pos' if row.net_pnl >= 0 else 'neg' }}">{{ '{:+,.0f}'.format(row.net_pnl) }}</td>
+        <td>{{ '%+.2f' % row.avg_pips }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+{% if plan.trade_log %}
+<section class="panel">
+  <div class="panel-head">
+    <h2>Recent trades</h2>
+    <a class="btn btn-ghost" href="/dashboard/trades.csv">Download full CSV</a>
+  </div>
+  {% if recent_trades %}
+  <table>
+    <thead><tr><th>Exit time</th><th>Instrument</th><th>Side</th><th>Entry</th><th>Exit</th><th>Pips</th><th>P&amp;L</th><th>Reason</th></tr></thead>
+    <tbody>
+      {% for t in recent_trades %}
+      <tr>
+        <td>{{ t.exit_time.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ t.instrument.replace('_', '/') }}</td>
+        <td>{{ t.side }}</td>
+        <td>{{ '%.5f' % t.entry_price }}</td>
+        <td>{{ '%.5f' % t.exit_price }}</td>
+        <td class="{{ 'pos' if t.pips >= 0 else 'neg' }}">{{ '%+.1f' % t.pips }}</td>
+        <td class="{{ 'pos' if t.pnl >= 0 else 'neg' }}">{{ '{:+,.0f}'.format(t.pnl) }}</td>
+        <td>{{ t.exit_reason }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No closed trades in the current window.</p>
+  {% endif %}
+</section>
+{% elif plan.full_metrics %}
+<section class="panel locked">
+  <h2>Trade-by-trade log</h2>
+  <p>The complete trade log with CSV export is available on
+     <strong>Premium</strong>.</p>
+  <a class="btn btn-primary" href="/checkout/premium">Upgrade to Premium</a>
+</section>
+{% endif %}
+{% endblock %}
