@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Plans & pricing — MindsFX{% endblock %}
+
+{% block content %}
+<section class="pricing-header">
+  <h1>Subscription plans</h1>
+  <p class="lede">Start free. Upgrade when you want the full picture. Cancel anytime.</p>
+</section>
+
+<section class="plan-grid">
+  {% for plan in plans %}
+  <div class="plan-card{% if plan.highlighted %} highlighted{% endif %}">
+    {% if plan.highlighted %}<div class="badge">Most popular</div>{% endif %}
+    <h2>{{ plan.name }}</h2>
+    <p class="tagline">{{ plan.tagline }}</p>
+    <div class="price">
+      {% if plan.price_monthly == 0 %}
+        <span class="amount">Free</span>
+      {% else %}
+        <span class="amount">${{ '%g' % plan.price_monthly }}</span><span class="per">/month</span>
+      {% endif %}
+    </div>
+    <ul class="feature-list">
+      {% for feat in plan.features %}
+      <li>{{ feat }}</li>
+      {% endfor %}
+    </ul>
+    {% if user and user_plan.key == plan.key %}
+      <span class="btn btn-current" aria-disabled="true">Current plan</span>
+    {% elif plan.price_monthly == 0 %}
+      <a class="btn btn-ghost" href="{{ '/dashboard' if user else '/register' }}">
+        {{ 'Open dashboard' if user else 'Start free' }}</a>
+    {% else %}
+      <a class="btn btn-primary" href="/checkout/{{ plan.key }}">Choose {{ plan.name }}</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="faq">
+  <h2>Frequently asked questions</h2>
+  <details>
+    <summary>What exactly am I subscribing to?</summary>
+    <p>Access to the analytics dashboard for our systematic FX strategy — its
+       live backtest results, risk metrics, and (on Premium) the full trade
+       log. We show research output; we do not manage money or place trades
+       for you.</p>
+  </details>
+  <details>
+    <summary>Can I cancel anytime?</summary>
+    <p>Yes. Plans are month-to-month with no lock-in; downgrading takes effect
+       at the end of the billing period.</p>
+  </details>
+  <details>
+    <summary>Is past performance a guarantee?</summary>
+    <p>No. All results shown are simulated backtests. They include realistic
+       costs but cannot include everything live trading involves, and future
+       results will differ.</p>
+  </details>
+</section>
+{% endblock %}

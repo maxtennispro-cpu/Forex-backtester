@@ -1,0 +1,11 @@
+# secrets — the OANDA API key lives here
+.env
+
+# candle cache & backtest outputs
+data/
+output/
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/

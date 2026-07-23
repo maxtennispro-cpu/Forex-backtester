@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}MindsFX — FX strategy analytics{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/">Minds<span>FX</span></a>
+    <nav>
+      <a href="/pricing">Pricing</a>
+      {% if user %}
+        <a href="/dashboard">Dashboard</a>
+        <a class="btn btn-ghost" href="/logout">Sign out</a>
+      {% else %}
+        <a href="/login">Sign in</a>
+        <a class="btn btn-primary" href="/register">Get started</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p><strong>MindsFX</strong> — systematic FX strategy analytics.</p>
+    <p class="disclaimer">
+      Backtested performance is simulated, uses synthetic or historical data,
+      and is not indicative of future results. Nothing on this site is
+      investment advice. Trading foreign exchange carries a high level of risk.
+    </p>
+  </footer>
+</body>
+</html>

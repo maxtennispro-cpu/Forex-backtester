@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout — MindsFX{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+  <h1>Subscribe to {{ plan.name }}</h1>
+  <div class="checkout-summary">
+    <p class="tagline">{{ plan.tagline }}</p>
+    <p class="price"><span class="amount">${{ '%g' % plan.price_monthly }}</span><span class="per">/month</span></p>
+    <ul class="feature-list">
+      {% for feat in plan.features %}
+      <li>{{ feat }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <p class="demo-note">Demo checkout — no payment is collected. Confirming
+     activates the plan on your account immediately.</p>
+  <form method="post" action="/checkout/{{ plan.key }}">
+    <button class="btn btn-primary btn-lg" type="submit">
+      Confirm subscription</button>
+  </form>
+  <p class="alt"><a href="/pricing">Back to plans</a></p>
+</section>
+{% endblock %}
