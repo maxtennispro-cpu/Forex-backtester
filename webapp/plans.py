@@ -20,6 +20,7 @@ class Plan:
     full_metrics: bool = False    # drawdown/Sharpe/expectancy + breakdowns
     equity_chart: bool = False
     trade_log: bool = False       # recent trades table + CSV export
+    live_signals: bool = False    # current + recent strategy signals
     highlighted: bool = False     # visual emphasis on the pricing page
 
 
@@ -42,12 +43,14 @@ PLANS: dict[str, Plan] = {
         tagline="Full performance analytics",
         features=[
             "Everything in Starter",
+            "Live trade signals (EUR/USD & GBP/USD)",
             "Full metrics: Sharpe, drawdown, profit factor, expectancy",
             "Equity curve & drawdown chart",
             "Per-session and per-instrument breakdowns",
         ],
         full_metrics=True,
         equity_chart=True,
+        live_signals=True,
         highlighted=True,
     ),
     "premium": Plan(
@@ -57,6 +60,7 @@ PLANS: dict[str, Plan] = {
         tagline="Every trade, exportable",
         features=[
             "Everything in Pro",
+            "Signals API (JSON) for automation",
             "Complete trade log with entry/exit detail",
             "CSV export of trades",
             "Priority support",
@@ -64,6 +68,7 @@ PLANS: dict[str, Plan] = {
         full_metrics=True,
         equity_chart=True,
         trade_log=True,
+        live_signals=True,
     ),
 }
 

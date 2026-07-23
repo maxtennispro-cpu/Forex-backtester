@@ -205,6 +205,27 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 64px; }
 .panel td { padding: 8px 10px; border-bottom: 1px solid #1c2634; color: var(--ink-secondary); }
 .panel tbody tr:last-child td { border-bottom: none; }
 
+/* ---- live signals ---- */
+.signal-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; margin: 14px 0 8px;
+}
+.signal-card {
+  background: var(--bg-raised); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px;
+}
+.signal-card.active { border-color: var(--accent); }
+.signal-inst { font-weight: 700; display: flex; justify-content: space-between; gap: 10px; }
+.signal-inst .meta { color: var(--ink-muted); font-weight: 400; font-size: 13px; }
+.signal-now { font-size: 20px; font-weight: 700; margin: 10px 0 4px; }
+.signal-now.long { color: var(--pos); }
+.signal-now.short { color: var(--neg); }
+.signal-detail { color: var(--ink-secondary); font-size: 13px; }
+.signal-none { color: var(--ink-muted); font-size: 14px; margin-top: 10px; }
+.sub-head { font-size: 15px; color: var(--ink-secondary); margin: 18px 0 8px; }
+.panel .meta { color: var(--ink-muted); font-size: 13px; }
+.panel code { background: var(--bg-raised); padding: 1px 6px; border-radius: 4px; }
+
 /* ---- footer ---- */
 .footer {
   border-top: 1px solid #1c2634; margin-top: 24px;

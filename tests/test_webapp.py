@@ -11,9 +11,10 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
-from webapp import backtest_service, db
+from webapp import backtest_service, db, signals_service
 from webapp.backtest_service import DashboardData
 from webapp.main import app
+from webapp.signals_service import InstrumentState, LiveSignal, SignalsData
 
 
 @pytest.fixture(autouse=True)
@@ -63,6 +64,30 @@ def isolated_state(tmp_path, monkeypatch):
         as_of=datetime(2026, 7, 21, tzinfo=timezone.utc),
     )
     monkeypatch.setattr(backtest_service, "get_dashboard_data", lambda: stub)
+
+    sig = LiveSignal(
+        instrument="EUR_USD", time=datetime(2026, 7, 21, 9, 0),
+        side="short", ref_price=1.0850, target_pips=12.0, stop_pips=18.0,
+        reason="close above 2sd band, 12.0 pips from mean",
+        session="london", is_current=True,
+    )
+    signals_stub = SignalsData(
+        demo=True, error=None,
+        as_of=datetime(2026, 7, 21, 9, 5, tzinfo=timezone.utc),
+        states=[
+            InstrumentState(
+                instrument="EUR_USD",
+                last_bar_time=datetime(2026, 7, 21, 9, 0),
+                last_close=1.0850, current=sig, recent=[sig],
+            ),
+            InstrumentState(
+                instrument="GBP_USD",
+                last_bar_time=datetime(2026, 7, 21, 9, 0),
+                last_close=1.2700, current=None, recent=[],
+            ),
+        ],
+    )
+    monkeypatch.setattr(signals_service, "get_signals", lambda: signals_stub)
     yield
 
 
@@ -154,6 +179,35 @@ def test_premium_unlocks_trade_log_and_csv(client):
     r = client.get("/dashboard/trades.csv")
     assert r.headers["content-type"].startswith("text/csv")
     assert "EUR_USD" in r.text
+
+
+def test_signals_gated_by_plan(client):
+    register(client)
+    body = client.get("/dashboard").text
+    assert "Live trade signals" in body and "available on <strong>Pro" in body
+    assert "SHORT" not in body
+
+    client.post("/checkout/pro")
+    body = client.get("/dashboard").text
+    assert "Live signals" in body
+    assert "SHORT @ ~1.08500" in body
+    assert "No active signal" in body            # GBP/USD has no setup
+
+
+def test_signals_api_requires_premium(client):
+    assert client.get("/api/signals").status_code == 401
+    register(client)
+    assert client.get("/api/signals").status_code == 403   # free
+    client.post("/checkout/pro")
+    assert client.get("/api/signals").status_code == 403   # pro
+    client.post("/checkout/premium")
+    r = client.get("/api/signals")
+    assert r.status_code == 200
+    payload = r.json()
+    assert payload["demo_data"] is True
+    eur = payload["instruments"][0]
+    assert eur["current_signal"]["side"] == "short"
+    assert eur["current_signal"]["target_pips"] == 12.0
 
 
 def test_checkout_rejects_unknown_and_free_plans(client):
