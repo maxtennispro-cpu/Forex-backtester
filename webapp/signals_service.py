@@ -91,8 +91,8 @@ def _fetch_candles(demo: bool, start: datetime, end: datetime) -> dict:
                                    seed=(day + i * 101) % (2**32))
             for i, inst in enumerate(INSTRUMENTS)
         }
-    client = OandaClient(os.environ["OANDA_API_KEY"],
-                         os.environ.get("OANDA_ENVIRONMENT", "practice"))
+    client = OandaClient(os.environ["OANDA_API_KEY"].strip(),
+                         os.environ.get("OANDA_ENVIRONMENT", "practice").strip())
     return {
         inst: client.fetch_candles(inst, GRANULARITY, start, end)
         for inst in INSTRUMENTS
@@ -107,7 +107,7 @@ def _compute() -> SignalsData:
     # for weekends/market closures when no candles print.
     start = end - timedelta(hours=SCAN_HOURS + 4) - timedelta(days=2)
 
-    demo = not os.environ.get("OANDA_API_KEY")
+    demo = not os.environ.get("OANDA_API_KEY", "").strip()
     error = None
     try:
         data = _fetch_candles(demo, start, end)
