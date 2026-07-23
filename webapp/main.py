@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import auth, backtest_service, db
+from . import auth, backtest_service, db, signals_service
 from .plans import PAID_PLANS, PLAN_ORDER, PLANS, get_plan
 
 HERE = Path(__file__).resolve().parent
@@ -131,6 +131,7 @@ def dashboard(request: Request):
     return render(
         request, "dashboard.html",
         plan=plan,
+        signals=signals_service.get_signals() if plan.live_signals else None,
         metrics=data.metrics,
         sessions=data.sessions.reset_index().to_dict(orient="records")
                  if plan.full_metrics and len(data.sessions) else None,
@@ -164,6 +165,47 @@ def dashboard_trades_csv(request: Request):
     return Response(csv, media_type="text/csv", headers={
         "Content-Disposition": "attachment; filename=trades.csv",
     })
+
+
+@app.get("/api/signals")
+def api_signals(request: Request):
+    """JSON feed of current + recent signals (Premium)."""
+    user = auth.current_user(request)
+    if user is None:
+        return Response('{"error": "authentication required"}', status_code=401,
+                        media_type="application/json")
+    if not get_plan(user["plan"]).trade_log:
+        return Response('{"error": "premium plan required"}', status_code=403,
+                        media_type="application/json")
+    data = signals_service.get_signals()
+    return {
+        "demo_data": data.demo,
+        "as_of": data.as_of.isoformat(),
+        "instruments": [
+            {
+                "instrument": st.instrument,
+                "last_bar_time": st.last_bar_time.isoformat(),
+                "last_close": st.last_close,
+                "current_signal": _signal_json(st.current),
+                "recent_signals": [_signal_json(s) for s in st.recent],
+            }
+            for st in data.states
+        ],
+    }
+
+
+def _signal_json(s) -> dict | None:
+    if s is None:
+        return None
+    return {
+        "time": s.time.isoformat(),
+        "side": s.side,
+        "ref_price": s.ref_price,
+        "target_pips": round(s.target_pips, 1),
+        "stop_pips": round(s.stop_pips, 1),
+        "session": s.session,
+        "reason": s.reason,
+    }
 
 
 # --------------------------------------------------------------------------

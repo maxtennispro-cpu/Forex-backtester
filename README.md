@@ -48,9 +48,23 @@ uvicorn webapp.main:app --reload    # then open http://127.0.0.1:8000
 ```
 
 - **Starter (free)** — headline stats (return, win rate, trade count).
-- **Pro** — full metrics (Sharpe, drawdown, profit factor, expectancy),
-  equity/drawdown chart, per-session and per-instrument breakdowns.
-- **Premium** — everything in Pro plus the complete trade log and CSV export.
+- **Pro** — live trade signals, full metrics (Sharpe, drawdown, profit
+  factor, expectancy), equity/drawdown chart, per-session and
+  per-instrument breakdowns.
+- **Premium** — everything in Pro plus a JSON signals API (`/api/signals`),
+  the complete trade log, and CSV export.
+
+### Live signals
+
+The dashboard's **Live signals** panel runs the BollingerFade strategy on
+the most recent M5 candles and shows the current setup (side, reference
+price, target/stop in pips, session) plus every signal from the last 24
+hours. Without credentials it runs on a demo data feed and says so; to use
+real market prices, set `OANDA_API_KEY` (a free practice-account token
+from oanda.com — Manage API Access) in `.env` locally, or add it as an
+environment variable on your Render service (Environment tab) and
+redeploy. Signals are research output from an unproven strategy — trade
+them at your own risk.
 
 Checkout is a placeholder (no payment is collected; confirming activates
 the plan). A real Stripe integration slots into `checkout_submit` in

@@ -50,6 +50,70 @@
   {% endif %}
 </section>
 
+{% if plan.live_signals and signals %}
+<section class="panel">
+  <div class="panel-head">
+    <h2>Live signals</h2>
+    <span class="meta">as of {{ signals.as_of.strftime('%H:%M UTC') }} · refreshes each minute</span>
+  </div>
+  {% if signals.demo %}
+  <p class="demo-note">Demo data feed — set <code>OANDA_API_KEY</code> on the
+     server to switch to live market prices.</p>
+  {% endif %}
+  <div class="signal-grid">
+    {% for st in signals.states %}
+    <div class="signal-card {{ 'active' if st.current else '' }}">
+      <div class="signal-inst">{{ st.instrument.replace('_', '/') }}
+        <span class="meta">{{ '%.5f' % st.last_close }} · bar {{ st.last_bar_time.strftime('%H:%M') }}</span>
+      </div>
+      {% if st.current %}
+      <div class="signal-now {{ st.current.side }}">
+        {{ st.current.side | upper }} @ ~{{ '%.5f' % st.current.ref_price }}
+      </div>
+      <div class="signal-detail">
+        target {{ '%.1f' % st.current.target_pips }} pips ·
+        stop {{ '%.1f' % st.current.stop_pips }} pips
+        {% if st.current.session %} · {{ st.current.session }} session
+        {% else %} · <strong>outside trading sessions — strategy would skip</strong>{% endif %}
+        <br>{{ st.current.reason }}
+      </div>
+      {% else %}
+      <div class="signal-none">No active signal — waiting for a setup</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if signals.all_recent %}
+  <h3 class="sub-head">Signals in the last 24h</h3>
+  <table>
+    <thead><tr><th>Bar time (UTC)</th><th>Instrument</th><th>Side</th><th>Price</th><th>Target</th><th>Stop</th><th>Session</th></tr></thead>
+    <tbody>
+      {% for s in signals.all_recent[:20] %}
+      <tr>
+        <td>{{ s.time.strftime('%m-%d %H:%M') }}</td>
+        <td>{{ s.instrument.replace('_', '/') }}</td>
+        <td class="{{ 'pos' if s.side == 'long' else 'neg' }}">{{ s.side | upper }}</td>
+        <td>{{ '%.5f' % s.ref_price }}</td>
+        <td>{{ '%.1f' % s.target_pips }}p</td>
+        <td>{{ '%.1f' % s.stop_pips }}p</td>
+        <td>{{ s.session or 'off-session' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="signal-none">No signals in the last 24 hours.</p>
+  {% endif %}
+</section>
+{% elif not plan.live_signals %}
+<section class="panel locked">
+  <h2>Live trade signals</h2>
+  <p>Current and recent strategy signals for EUR/USD and GBP/USD are
+     available on <strong>Pro</strong>.</p>
+  <a class="btn btn-primary" href="/checkout/pro">Upgrade to Pro</a>
+</section>
+{% endif %}
+
 {% if plan.equity_chart %}
 <section class="panel">
   <h2>Equity curve &amp; drawdown</h2>
