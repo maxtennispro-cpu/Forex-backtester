@@ -1,0 +1,14 @@
+# Render blueprint: deploy the MindsFX web app with one click.
+# On render.com: New + > Blueprint > connect this repository.
+services:
+  - type: web
+    name: mindsfx
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn webapp.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: APP_SECRET_KEY
+        generateValue: true

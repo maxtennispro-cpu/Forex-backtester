@@ -57,6 +57,22 @@ the plan). A real Stripe integration slots into `checkout_submit` in
 `webapp/main.py`. Users live in SQLite under `webapp/data/` (gitignored);
 set `APP_SECRET_KEY` in `.env` to keep sessions across restarts.
 
+### Deploying it
+
+The repo ships with a `render.yaml` blueprint: on [render.com](https://render.com),
+choose **New + → Blueprint**, connect this repository, and it deploys the
+site to a public URL on the free plan (a random `APP_SECRET_KEY` is
+generated for you). Any Docker host works too:
+
+```bash
+docker build -t mindsfx .
+docker run -p 8000:8000 mindsfx
+```
+
+Note the SQLite user database is on local disk — on free hosts with
+ephemeral storage, accounts reset on redeploy. Fine for a demo; attach a
+persistent disk or move to a hosted database before real users.
+
 ## The strategy
 
 `forex_backtester/strategy/mean_reversion.py` — **BollingerFade**:
