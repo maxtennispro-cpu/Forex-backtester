@@ -57,8 +57,13 @@
     <span class="meta">as of {{ signals.as_of.strftime('%H:%M UTC') }} · refreshes each minute</span>
   </div>
   {% if signals.demo %}
-  <p class="demo-note">Demo data feed — set <code>OANDA_API_KEY</code> on the
-     server to switch to live market prices.</p>
+    {% if signals.error %}
+    <p class="demo-note">Live market data fetch <strong>failed</strong> — showing
+       demo data instead. The error was:<br><code>{{ signals.error }}</code></p>
+    {% else %}
+    <p class="demo-note">Demo data feed — set <code>OANDA_API_KEY</code> on the
+       server to switch to live market prices.</p>
+    {% endif %}
   {% endif %}
   <div class="signal-grid">
     {% for st in signals.states %}
