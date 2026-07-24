@@ -88,6 +88,23 @@
     </div>
     {% endfor %}
   </div>
+  {% for st in signals.states %}
+  <img class="chart live-chart" src="/dashboard/live_chart/{{ st.instrument }}.png"
+       alt="Live {{ st.instrument.replace('_', '/') }} chart with Bollinger bands and signals">
+  {% endfor %}
+  <p class="meta chart-legend">Candles are M5, last 8 hours. Blue lines: the
+     2-standard-deviation Bollinger bands the strategy trades. ▲/▼ mark bars
+     whose close fired a long/short signal. Charts refresh every minute.</p>
+  <script>
+    setInterval(function () {
+      document.querySelectorAll("img.live-chart").forEach(function (img) {
+        var u = new URL(img.src, window.location);
+        u.searchParams.set("t", Date.now());
+        img.src = u.toString();
+      });
+    }, 60000);
+  </script>
+
   {% if signals.all_recent %}
   <h3 class="sub-head">Signals in the last 24h</h3>
   <table>

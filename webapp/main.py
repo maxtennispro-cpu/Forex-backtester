@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import auth, backtest_service, db, signals_service
+from . import auth, backtest_service, charts, db, signals_service
 from .plans import PAID_PLANS, PLAN_ORDER, PLANS, get_plan
 
 HERE = Path(__file__).resolve().parent
@@ -165,6 +165,21 @@ def dashboard_trades_csv(request: Request):
     return Response(csv, media_type="text/csv", headers={
         "Content-Disposition": "attachment; filename=trades.csv",
     })
+
+
+@app.get("/dashboard/live_chart/{instrument}.png")
+def live_chart(request: Request, instrument: str):
+    user = auth.current_user(request)
+    if user is None:
+        return RedirectResponse("/login", status_code=303)
+    if not get_plan(user["plan"]).live_signals:
+        return RedirectResponse("/pricing", status_code=303)
+    data = signals_service.get_signals()
+    state = next((s for s in data.states if s.instrument == instrument), None)
+    if state is None or state.candles is None:
+        return Response("not found", status_code=404)
+    return Response(charts.render_live_chart(state), media_type="image/png",
+                    headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/signals")

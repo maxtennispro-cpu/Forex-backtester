@@ -52,6 +52,7 @@ class InstrumentState:
     last_close: float
     current: LiveSignal | None
     recent: list[LiveSignal] = field(default_factory=list)   # newest first
+    candles: object = None    # indicator-enriched OHLC tail, for the live chart
 
 
 @dataclass(frozen=True)
@@ -149,5 +150,6 @@ def _compute() -> SignalsData:
             last_close=float(enriched["close"].iloc[-1]),
             current=next((s for s in signals if s.is_current), None),
             recent=signals,
+            candles=enriched.tail(120),
         ))
     return SignalsData(demo=demo, error=error, as_of=end, states=states)

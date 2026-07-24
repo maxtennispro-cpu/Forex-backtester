@@ -65,6 +65,16 @@ def isolated_state(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(backtest_service, "get_dashboard_data", lambda: stub)
 
+    import numpy as np
+    n = 60
+    base = 1.08 + 0.001 * np.sin(np.arange(n) / 6)
+    candles = pd.DataFrame(
+        {"open": base, "high": base + 0.0004, "low": base - 0.0004,
+         "close": base + 0.0001, "bb_mid": base,
+         "bb_upper": base + 0.0008, "bb_lower": base - 0.0008},
+        index=pd.date_range(datetime(2026, 7, 21, 5, 0), periods=n, freq="5min"),
+    )
+
     sig = LiveSignal(
         instrument="EUR_USD", time=datetime(2026, 7, 21, 9, 0),
         side="short", ref_price=1.0850, target_pips=12.0, stop_pips=18.0,
@@ -79,6 +89,7 @@ def isolated_state(tmp_path, monkeypatch):
                 instrument="EUR_USD",
                 last_bar_time=datetime(2026, 7, 21, 9, 0),
                 last_close=1.0850, current=sig, recent=[sig],
+                candles=candles,
             ),
             InstrumentState(
                 instrument="GBP_USD",
@@ -192,6 +203,18 @@ def test_signals_gated_by_plan(client):
     assert "Live signals" in body
     assert "SHORT @ ~1.08500" in body
     assert "No active signal" in body            # GBP/USD has no setup
+
+
+def test_live_chart_gated_and_renders(client):
+    register(client)
+    r = client.get("/dashboard/live_chart/EUR_USD.png", follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/pricing"
+
+    client.post("/checkout/pro")
+    r = client.get("/dashboard/live_chart/EUR_USD.png")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "image/png"
+    assert client.get("/dashboard/live_chart/XXX_YYY.png").status_code == 404
 
 
 def test_signals_api_requires_premium(client):
