@@ -223,6 +223,8 @@ main { max-width: var(--maxw); margin: 0 auto; padding: 0 24px 64px; }
 .signal-detail { color: var(--ink-secondary); font-size: 13px; }
 .signal-none { color: var(--ink-muted); font-size: 14px; margin-top: 10px; }
 .sub-head { font-size: 15px; color: var(--ink-secondary); margin: 18px 0 8px; }
+.live-chart { margin-top: 14px; }
+.chart-legend { margin: 6px 0 0; }
 .panel .meta { color: var(--ink-muted); font-size: 13px; }
 .panel code { background: var(--bg-raised); padding: 1px 6px; border-radius: 4px; }
 
