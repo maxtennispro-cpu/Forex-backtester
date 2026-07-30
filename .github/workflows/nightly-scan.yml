@@ -1,0 +1,60 @@
+name: Nightly stock scan
+
+# 22:00 UTC on weekdays = 6pm ET during EDT, 5pm ET during EST — after the US
+# close either way, with time for end-of-day data to settle. Cron in Actions is
+# UTC-only and can be delayed under load, which is fine for an EOD scan.
+on:
+  schedule:
+    - cron: "0 22 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: "Optional space-separated tickers to scan instead of the full universe"
+        required: false
+        type: string
+      skip_ai:
+        description: "Skip the AI scoring pass"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: nightly-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: stock-scanner/scanner
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: stock-scanner/scanner/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -q
+
+      - name: Run scan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          ARGS=""
+          if [ -n "${{ inputs.tickers }}" ]; then
+            ARGS="$ARGS --tickers ${{ inputs.tickers }}"
+          fi
+          if [ "${{ inputs.skip_ai }}" = "true" ]; then
+            ARGS="$ARGS --no-ai"
+          fi
+          python scan.py $ARGS
