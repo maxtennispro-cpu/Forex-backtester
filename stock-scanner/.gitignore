@@ -1,0 +1,14 @@
+# node / next
+node_modules/
+.next/
+next-env.d.ts
+.vercel/
+
+# env
+.env
+.env.local
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
